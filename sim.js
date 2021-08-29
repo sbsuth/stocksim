@@ -32,7 +32,6 @@ class Market {
             this.periods.pop();
         }
         this.periods.unshift(period)
-//{"primary":{"start":{"date":"2020-12-01T00:00:00.000Z","price":"86.830002","adjPrice":86.830002},"end":{"date":"2020-12-31T00:00:00.000Z","price":"91.349998","adjPrice":"91.349998"}},"refs":[{"start":{"date":"2020-12-01T00:00:00.000Z","price":"365.570007","adjPrice":365.570007},"end":{"date":"2020-12-31T00:00:00.000Z","price":"373.880005","adjPrice":"373.880005"}}]}
         return period;
     }
     current() {
@@ -131,19 +130,20 @@ class AccountSnapshot {
     positionsFor( ticker ) {
     }
 
-    // Add or remove cach.
+    // Add or remove cash.
     deposit( value ) {
         var newSS = new AccountSnapshot( this );
-        return {action: new Action("deposit","cach",value, 1.0), ss: newSS};
+        return {action: new Action("deposit","cash",value, 1.0), ss: newSS};
     }
     withdraw( value ) {
         var newSS = new AccountSnapshot( this );
-        return {action: new Action("withdraw","cach",value, 1.0), ss: newSS};
+        return {action: new Action("withdraw","cash",value, 1.0), ss: newSS};
     }
 
     
     reprice( market) {
         var newSS = new AccountSnapshot( this );
+		// No positions currently. Need to add positions, and change its price.
         return {action: new Action("price","",0,market.endAdjPrice()), ss: newSS};
                 
     }
@@ -195,9 +195,9 @@ class Simulator {
         for await (const period of periods)  {
             this.market.newPeriod( period );
             this.account.syncToMarket( this.market );
-            var sync = [this.account.reprice( this.market )];
-            var trades = this.strategy.trade( this.market, this.account ); 
-            yield sync.concat(trades);
+            var sync = [this.account.reprice( this.market )]; // Returns "price" transactions.  'ss' field is a record of current account.
+            var trades = this.strategy.trade( this.market, this.account );  // Returns trade transactions.
+            yield sync.concat(trades); 
         }
     }
 }
